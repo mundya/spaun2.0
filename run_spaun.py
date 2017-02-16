@@ -385,6 +385,20 @@ for n in range(args.n):
             sim = nengo_mpi.Simulator(model, dt=cfg.sim_dt,
                                       partitioner=partitioner,
                                       save_file=mpi_savefile)
+    elif cfg.use_spinn:
+        import nengo_spinnaker
+
+        with model:
+            output_probe = nengo.Probe(model.mtr.dec_ind, synapse=0.005)
+
+        nengo_spinnaker.add_spinnaker_params(model.config)
+
+        # Make all nodes (which aren't passthrough) function of time nodes
+        for n in model.all_nodes:
+            if n.output is not None:
+                model.config[n].function_of_time = True
+
+        sim = nengo_spinnaker.Simulator(model, use_spalloc=True)
     else:
         sim = nengo.Simulator(model, dt=cfg.sim_dt)
 
@@ -409,6 +423,26 @@ for n in range(args.n):
         print "MODEL N_NEURONS: %i" % (get_total_n_neurons(model))
         print "FINISHED! - Build time: %fs, Sim time: %fs" % (t_build,
                                                               t_simrun)
+    elif cfg.use_spinn:
+        before = sum(
+            sim.controller.get_router_diagnostics(x, y).dropped_multicast
+            for (x, y) in sim.controller.get_machine()
+        )
+        try:
+            sim.run(runtime)
+        finally:
+            dropped = sum(
+                sim.controller.get_router_diagnostics(x, y).dropped_multicast
+                for (x, y) in sim.controller.get_machine()
+            ) - before
+
+            print("DROPPED {} PACKETS".format(dropped))
+
+        import numpy as np
+
+        np.savez_compressed("results.npz", time=sim.trange(),
+                            dec_ind=sim.data[output_probe],
+                            dropped_multicast=dropped)
     else:
         print "MODEL N_NEURONS: %i" % (get_total_n_neurons(model))
         print "FINISHED! - Build time: %fs" % (t_build)
@@ -430,6 +464,7 @@ for n in range(args.n):
         t_simrun = -1
 
     # ----- Generate debug printouts -----
+    """
     n_bytes_ev = 0
     n_bytes_gain = 0
     n_bytes_bias = 0
@@ -448,6 +483,7 @@ for n in range(args.n):
         print("## DEBUG: num bytes used for biases: %s B" %
               ("{:,}".format(n_bytes_bias)))
         print("## DEBUG: num ensembles: %s" % n_ens)
+    """
 
     # ----- Close simulator -----
     if hasattr(sim, 'close'):

@@ -10,7 +10,7 @@ from _spaun.modules import TrfmSys, Memory, Monitor, InfoDec, Motor
 
 # #### DEBUG DUMMY NETWORK IMPORTS ####
 # from _spaun.modules.experimenter import StimulusDummy as Stimulus  # noqa
-# from _spaun.modules.vision_system import VisionSystemDummy as Vision  # noqa
+from _spaun.modules.vision_system import VisionSystemDummy as Vision  # noqa
 # from _spaun.modules.working_memory import WorkingMemoryDummy as Memory  # noqa
 # from _spaun.modules.transform_system import TransformationSystemDummy as TrfmSys  # noqa
 
@@ -32,7 +32,7 @@ def Spaun():
         model.trfm = TrfmSys()
         model.dec = InfoDec()
         model.mtr = Motor()
-        model.monitor = Monitor()
+        # model.monitor = Monitor()  # SpiNNaker hack
 
         model.learn_conns = []
 

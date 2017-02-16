@@ -73,7 +73,7 @@ class SpaunConfig(object):
         self.mtr_kp = 65
         self.mtr_kv1 = np.sqrt(8)
         self.mtr_kv2 = np.sqrt(18) - self.mtr_kv1
-        self.mtr_arm_type = 'three_link'
+        self.mtr_arm_type = None  # 'three_link' SpiNNaker hack
         self.mtr_arm_rest_x_bias = -0.3
         self.mtr_arm_rest_y_bias = 2.5
         self.mtr_tgt_threshold = 0.075
